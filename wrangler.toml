@@ -1,0 +1,36 @@
+name = "ai-mastra-weather"
+main = "src/worker.ts"
+compatibility_date = "2025-08-10"
+
+[build]
+command = "npm run build"
+
+[build.upload]
+format = "modules"
+dir = "dist"
+main = "./worker.js"
+rules = [
+  { type = "ESModule", globs = ["**/*.js"] }
+]
+
+# KV 命名空间
+[[kv_namespaces]]
+binding = "WEATHER_KV"
+id = "ac357b60d3584a2c9ad93525379f71d4"
+
+# 环境变量配置
+[vars]
+ENVIRONMENT = "production"
+
+# 需要在 Cloudflare Dashboard 中设置这些密钥
+# OPENAI_API_KEY = "your-api-key"
+
+# 生产环境配置
+[env.production]
+name = "ai-mastra-weather-prod"
+vars = { ENVIRONMENT = "production" }
+
+# 测试环境配置
+[env.staging]
+name = "ai-mastra-weather-staging"
+vars = { ENVIRONMENT = "staging" }

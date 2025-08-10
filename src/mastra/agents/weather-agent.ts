@@ -1,12 +1,13 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
-import { LibSQLStore } from '@mastra/libsql';
 import { weatherTool } from '../tools/weather-tool';
+import type { Env } from '../types';
 
-export const weatherAgent = new Agent({
-  name: 'Weather Agent',
-  instructions: `
+export const createWeatherAgent = (env: Env) => {
+  return new Agent({
+    name: 'Weather Agent',
+    instructions: `
       You are a helpful weather assistant that provides accurate weather information and can help planning activities based on the weather.
 
       Your primary function is to help users get weather details for specific locations. When responding:
@@ -20,11 +21,22 @@ export const weatherAgent = new Agent({
 
       Use the weatherTool to fetch current weather data.
 `,
-  model: openai('gpt-5'),
-  tools: { weatherTool },
-  memory: new Memory({
-    storage: new LibSQLStore({
-      url: 'file:../mastra.db', // path is relative to the .mastra/output directory
+    model: openai('gpt-4-turbo-preview', {
+      apiKey: env.OPENAI_API_KEY,
     }),
-  }),
-});
+    tools: { weatherTool },
+    memory: new Memory({
+      storage: {
+        async get(key: string) {
+          return await env.WEATHER_KV.get(key);
+        },
+        async set(key: string, value: string) {
+          await env.WEATHER_KV.put(key, value);
+        },
+        async delete(key: string) {
+          await env.WEATHER_KV.delete(key);
+        },
+      },
+    }),
+  });
+};
